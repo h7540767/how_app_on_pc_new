@@ -3,9 +3,9 @@ PROGS = casefactory ac
 CC = g++
 
 ifeq ($(ver), debug)
-CFLAGS = -g -O2 -Wall -std=c++11 -Ddebug
+CFLAGS = -g -std=c++11 -Ddebug
 else
-CFLAGS = -g -O2 -Wall -std=c++11
+CFLAGS = -g -std=c++11
 endif
 
 all: ${PROGS}

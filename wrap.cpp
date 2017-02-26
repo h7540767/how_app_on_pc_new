@@ -160,11 +160,24 @@ int myrand(int start, int end)
 	if (start > end)
 	{
 		cout << "myrand usage: start <= end\n";
+		cout << "start = " << start << " end = " << end << endl;
 		exit(-1);
 	}
 	return rand() % (end - start + 1) + start;
 }
 
+char *Fgets(char *s, int size, FILE *stream)
+{
+	char * ret;
+	ret = fgets(s, size, stream);
+	if (strlen(ret) == size - 1)
+	{
+		cout << "string too long and buf too small" << endl;
+		exit(-1);
+	}
+
+	return ret;
+}
 
 
 
