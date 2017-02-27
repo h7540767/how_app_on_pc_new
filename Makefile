@@ -7,16 +7,17 @@ else
 CFLAGS = -g -std=c++11
 endif
 
-OBJS    = wrap.o
+OBJS1    = wrap.o case.o
+OBJS2    = wrap.o main.o ac.o
 TARGETS = casefactory ac 
 
 .PHONY: all 
 all: $(TARGETS)
 
-casefactory: case.o $(OBJS)
+casefactory: $(OBJS1)
 	$(CC) -o $@ $^ $(CFLAGS)
 
-ac: main.o ac.o $(OBJS)
+ac: $(OBJS2)
 	$(CC) -o $@ $^ $(CFLAGS)	
 	
 %.o: %.cpp
@@ -27,7 +28,8 @@ ac: main.o ac.o $(OBJS)
 	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
 
--include $(OBJS:.o=.d)
+-include $(OBJS1:.o=.d)
+-include $(OBJS2:.o=.d)
 
 .PHONY:clean 
 clean:
