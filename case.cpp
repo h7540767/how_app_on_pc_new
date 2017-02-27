@@ -5,7 +5,7 @@
 #define MINAPPDELAY  1
 #define MAXPCDELAY   100
 #define MINPCDELAY   1
-#define MAXTYPE      50
+#define MAXTYPE      10
 #define MINTYPE      1
 #define MAXMEMORY    1024
 #define MINMEMORY    1
@@ -81,8 +81,8 @@ int main(int argc, char *argv[])
 		char buf[200];
 		char idstr[20], typestr[20], memorystr[20];
 		int id = i;
-		int type = myrand(1, 50);
-		int memory = myrand(1, 1024);
+		int type = myrand(1, MAXTYPE);
+		int memory = myrand(1, MAXMEMORY);
 
 		snprintf(buf, sizeof(buf), "%-10s%-10s%-5s\n", 
 			itoa(id, idstr, 10), itoa(type, typestr, 10), itoa(memory, memorystr, 10));

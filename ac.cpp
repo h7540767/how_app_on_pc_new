@@ -102,6 +102,9 @@ void AC::loadinfor()
 		strtok(buf, " ");
 		pcinfor[i].type = atoi(strtok(NULL, " "));
 		pcinfor[i].memory = atoi(strtok(NULL, " "));
+
+		pctype2id[pcinfor[i].type].id.insert(i);
+
 	}
 	
 	for (int i = 0; fgets(buf, sizeof(buf), appinforfp) != NULL; i++)
@@ -118,10 +121,7 @@ void AC::loadinfor()
 			appinfor[i].type.insert(atoi(token));
 		}
 		
-		for (auto item : appinfor[i].type)
-		{
-			pctype2id[item].id.insert(i);
-		}
+		
 		
 	}
 	
@@ -235,7 +235,7 @@ int AC::dnatoid(const string &appdna)
 	int ret = 0;
 	for (int i = 0; i < appdna.size(); i++)
 	{
-		ret += 2 * ret + appdna[i] - '0';
+		ret = (2 * ret + appdna[i] - '0');
 	}
 
 	return ret;
@@ -263,12 +263,12 @@ int AC::calfit(const string &dna)
 			return -1;
 		}
 
-		if (pcdelay[startid][endid] > appdelay[i - 1])
+		if (pcdelay[pcidforapp_v[i - 1][startid]][pcidforapp_v[i][endid]] > appdelay[i - 1])
 		{
 			//printf("appdelay[%d] = %d\n", i - 1, appdelay[i - 1]);
 			return -1;
 		}
-		fitness += pcdelay[startid][endid];
+		fitness += pcdelay[pcidforapp_v[i - 1][startid]][pcidforapp_v[i][endid]];
 		startid = endid;
 		head += bits[i];
 	}
@@ -407,8 +407,15 @@ void AC::ga()
 			exit(-1);
 		}
 		
-		bits[i] = (int)ceil(log2(pcidforapp_v[i].size()));
+		bits[i] = (int)ceil(log2(pcidforapp_v[i].size()) ? log2(pcidforapp_v[i].size()) : 1);
 	}
+	
+	/*for (int i = 0; i < appnum; i++)
+	{
+		cout << bits[i] << " ";
+	}
+	cout << endl;
+	return ;*/
 	/*check if this case is good*/
 
 	for (int i = 0; i < appnum - 1; i++)
@@ -545,12 +552,19 @@ void AC::ga()
 /*show the end of plans*/
 void AC::showret() 
 {
-	cout << "DNA:  " << plans[0].dna << endl;
+	cout << "DNA:  ";
 	int start = 0;
+	for (int i = 0; i < appnum; i++)
+	{
+		cout << plans[0].dna.substr(start, bits[i]) << "-";
+		start += bits[i];
+	}
+	cout << endl;
+	start = 0;
 	cout << "pcid:  ";
 	for (int i = 0; i < appnum; i++)
 	{
-		cout << dnatoid(plans[0].dna.substr(start, bits[i])) << " ";
+		cout << pcidforapp_v[i][dnatoid(plans[0].dna.substr(start, bits[i]))] << " ";
 		start += bits[i]; 
 	}
 	cout << endl;
@@ -564,7 +578,7 @@ void AC::showpcid(Plan plan)
 	cout << "pcid:  ";
 	for (int i = 0; i < appnum; i++)
 	{
-		cout << dnatoid(plan.dna.substr(start, bits[i])) << " ";
+		cout << pcidforapp_v[i][dnatoid(plan.dna.substr(start, bits[i]))] << " ";
 		start += bits[i]; 
 	}
 	cout << endl;
