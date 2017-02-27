@@ -24,7 +24,6 @@ void 	Fclose(FILE *fp);
 ssize_t Getline(char **lineptr, size_t *n, FILE *stream);
 void * 	Malloc(size_t size);
 int     myrand(int start, int end);
-char *  Fgets(char *s, int size, FILE *stream);
 
 
 

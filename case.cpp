@@ -1,14 +1,12 @@
 #include <time.h>
 #include "wrap.h"
 
-#define MAXAPPDELAY  500
-#define MINAPPDELAY  1
-#define MAXPCDELAY   100
-#define MINPCDELAY   1
-#define MAXTYPE      50
-#define MINTYPE      1
-#define MAXMEMORY    1024
-#define MINMEMORY    1
+#define MAXDELAY  5000
+#define MINDELAY  1
+#define MAXTYPE   50
+#define MINTYPE   1
+#define MAXMEMORY 1024
+#define MINMEMORY 1
 
 
 
@@ -43,7 +41,7 @@ int main(int argc, char *argv[])
 	#ifdef debug
 	cout << "debug version" << endl;
 	#endif
-
+	
 	while ( (c = Getopt(argc, argv, "a:p:")) != -1) 
 	{
 		switch (c) 
@@ -66,7 +64,7 @@ int main(int argc, char *argv[])
 	
 	srand((unsigned int)time(NULL));	
 	
-	fd = Open("pcinfor.csv", O_CREAT | O_TRUNC | O_RDWR, 0666);
+	fd = Open("pcinfor.csv", O_CREAT | O_EXCL | O_RDWR, 0666);
 	
 	char buf[200];
 	char appnumstr[20], pcnumstr[20], str[20];
@@ -92,7 +90,7 @@ int main(int argc, char *argv[])
 	
 	Close(fd);
 	
-	fd = Open("appinfor.csv", O_CREAT | O_TRUNC | O_RDWR, 0666);
+	fd = Open("appinfor.csv", O_CREAT | O_EXCL | O_RDWR, 0666);
 
 	for (int i = 0; i < appnum; i++)
 	{
@@ -122,7 +120,7 @@ int main(int argc, char *argv[])
 
 	Close(fd);
 
-	fd = Open("pcdelayinfor.csv", O_CREAT | O_TRUNC | O_RDWR, 0666);
+	fd = Open("pcdelayinfor.csv", O_CREAT | O_EXCL | O_RDWR, 0666);
 
 	for (int i = 0; i < pcnum; i++)
 	{
@@ -132,7 +130,7 @@ int main(int argc, char *argv[])
 			char id0str[20], id1str[20], delaystr[20];
 			int id0 = i;
 			int id1 = j;
-			int delay = myrand(MINPCDELAY, MAXPCDELAY);
+			int delay = myrand(1, 5000);
 			
 			if (id0 == id1)
 			{
@@ -148,22 +146,20 @@ int main(int argc, char *argv[])
 
 	Close(fd);
 
-	fd = Open("appdelayinfor.csv", O_CREAT | O_TRUNC | O_RDWR, 0666);
+	fd = Open("appdelayinfor.csv", O_CREAT | O_EXCL | O_RDWR, 0666);
 
 	for (int i = 0; i < appnum - 2; i++)
 	{
 		char buf[200];
 		char str[20];
 
-		int delay = myrand(MINAPPDELAY, MAXAPPDELAY);
+		int delay = myrand(MINDELAY, MAXDELAY);
 		snprintf(buf, sizeof(buf), "%s ", itoa(delay, str, 10));
 		Write(fd, buf, strlen(buf));
 	}
 
-	snprintf(buf, sizeof(buf), "%s\n", itoa(myrand(MINAPPDELAY, MAXAPPDELAY), str, 10));
+	snprintf(buf, sizeof(buf), "%s\n", itoa(myrand(MINDELAY, MAXDELAY);, str, 10));
 	Write(fd, buf, strlen(buf));
-
-	Close(fd);
 
 	return 0;
 }
