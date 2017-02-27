@@ -8,6 +8,7 @@ else
 CFLAGS = -g -O2 -Wall -std=c++11
 endif
 
+<<<<<<< HEAD
 all: ${PROGS}
 #	rm -f *.csv
 
@@ -28,6 +29,29 @@ case.o: case.cpp wrap.h
 	
 wrap.o: wrap.cpp wrap.h
 	${CC} -o wrap.o -c wrap.cpp ${CFLAGS}
+=======
+OBJS    = wrap.o
+TARGETS = casefactory ac 
+
+.PHONY: all 
+all: $(TARGETS)
+
+casefactory: case.o $(OBJS)
+	$(CC) -o $@ $^ $(CFLAGS)
+
+ac: main.o ac.o $(OBJS)
+	$(CC) -o $@ $^ $(CFLAGS)	
+	
+%.o: %.cpp
+	$(CC) -o $@ -c $< $(CFLAGS)
+
+%.d: %.cpp
+	@set -e; rm -f $@; $(CC) -MM $< > $@.$$$$; \
+	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
+	rm -f $@.$$$$
+
+-include $(OBJS:.o=.d)
+>>>>>>> parent of fb2957b... 修复了自动生成头文件依赖的bug
 
 clean:
 	rm -f ${PROGS} *.o
