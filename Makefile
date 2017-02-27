@@ -1,45 +1,23 @@
 ver = release
-PROGS = casefactory ac
 CC = g++
 
 ifeq ($(ver), debug)
-CFLAGS = -g -O2 -Wall -std=c++11 -Ddebug
+CFLAGS = -g -std=c++11 -Ddebug
 else
-CFLAGS = -g -O2 -Wall -std=c++11
+CFLAGS = -g -std=c++11
 endif
 
-<<<<<<< HEAD
-all: ${PROGS}
-#	rm -f *.csv
-
-casefactory: case.o wrap.o
-	${CC} -o casefactory case.o wrap.o ${CFLAGS}
-	
-ac: main.o wrap.o ac.o
-	${CC} -o ac ac.o wrap.o main.o ${CFLAGS}
-	
-main.o: main.cpp wrap.h ac.h
-	${CC} -o main.o -c main.cpp ${CFLAGS}
-	
-ac.o: ac.cpp wrap.h ac.h
-	${CC} -o ac.o -c ac.cpp ${CFLAGS}
-	
-case.o: case.cpp wrap.h
-	${CC} -o case.o -c case.cpp ${CFLAGS}
-	
-wrap.o: wrap.cpp wrap.h
-	${CC} -o wrap.o -c wrap.cpp ${CFLAGS}
-=======
-OBJS    = wrap.o
+OBJS1    = wrap.o case.o
+OBJS2    = wrap.o main.o ac.o
 TARGETS = casefactory ac 
 
 .PHONY: all 
 all: $(TARGETS)
 
-casefactory: case.o $(OBJS)
+casefactory: $(OBJS1)
 	$(CC) -o $@ $^ $(CFLAGS)
 
-ac: main.o ac.o $(OBJS)
+ac: $(OBJS2)
 	$(CC) -o $@ $^ $(CFLAGS)	
 	
 %.o: %.cpp
@@ -50,10 +28,9 @@ ac: main.o ac.o $(OBJS)
 	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
 
--include $(OBJS:.o=.d)
->>>>>>> parent of fb2957b... 修复了自动生成头文件依赖的bug
+-include $(OBJS1:.o=.d)
+-include $(OBJS2:.o=.d)
 
+.PHONY:clean 
 clean:
-	rm -f ${PROGS} *.o
-
-.PHONY: clean
+	rm -f $(TARGETS) *.o *.d *.d.*

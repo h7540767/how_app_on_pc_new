@@ -21,9 +21,10 @@ Plan Plan::operator + (Plan son)
 
 AC::AC()
 {
-	pcinforfp    = Fopen("pcinfor.csv", "r");
-	appinforfp   = Fopen("appinfor.csv", "r");
-	delayinforfp = Fopen("delayinfor.csv", "r");
+	pcinforfp       = Fopen("pcinfor.csv", "r");
+	appinforfp      = Fopen("appinfor.csv", "r");
+	pcdelayinforfp  = Fopen("pcdelayinfor.csv", "r");
+	appdelayinforfp = Fopen("appdelayinfor.csv", "r");
 	pctype2id    = NULL;
     pcinfor      = NULL;
     appinfor     = NULL;
@@ -38,7 +39,8 @@ AC::~AC()
 {
 	Fclose(pcinforfp);
 	Fclose(appinforfp);
-	Fclose(delayinforfp);
+	Fclose(pcdelayinforfp);
+	Fclose(appdelayinforfp);
 	
 	if (pctype2id != NULL)
 	{
@@ -65,14 +67,14 @@ AC::~AC()
 		delete[] pcidforapp_v;
 	}
 	
-	/*if (delayinfor != NULL)
+	/*if (pcdelay != NULL)
 	{
 		for (int i = 0; i < pcnum; i++)
 		{
-			delete[] delayinfor[i];
+			delete[] pcdelay[i];
 		}
 		
-		delete[] delayinfor;
+		delete[] pcdelay;
 	}*/
 }
 
@@ -87,11 +89,12 @@ void AC::loadinfor()
 	pcinfor 	= new Pcinfor[pcnum];
 	appinfor 	= new Appinfor[appnum];
 
-	delayinfor.resize(pcnum, vector<int>(pcnum));
-	/*delayinfor = new int * [pcnum];
+	pcdelay.resize(pcnum, vector<int>(pcnum));
+	appdelay.resize(appnum - 1);
+	/*pcdelay = new int * [pcnum];
     for (int i = 0; i < pcnum; i++)  
     {  
-        delayinfor[i] = new int[pcnum];  
+        pcdelay[i] = new int[pcnum];  
     }*/  
 	
 	for (int i = 0; fgets(buf, sizeof(buf), pcinforfp) != NULL; i++)
@@ -122,14 +125,23 @@ void AC::loadinfor()
 		
 	}
 	
-	while (fgets(buf, sizeof(buf), delayinforfp) != NULL)
+	while (fgets(buf, sizeof(buf), pcdelayinforfp) != NULL)
 	{
 		int id0 = atoi(strtok(buf, " "));
 		int id1 = atoi(strtok(NULL, " "));
 		int delay = atoi(strtok(NULL, " "));
-		delayinfor[id0][id1] = delay;
+		pcdelay[id0][id1] = delay;
+		pcdelay[id1][id0] = delay;
 	}
+
+	fgets(buf, sizeof(buf), appdelayinforfp);
 	
+	appdelay[0] = atoi(strtok(buf, " "));
+
+	for (int i = 1; i < appnum - 1; i++)
+	{
+		appdelay[i] = atoi(strtok(NULL, " "));
+	}
 	
 	return ;
 }
@@ -140,9 +152,11 @@ void AC::showinfor()
 	{
 		cout << i << "    " << pcinfor[i].type << "    " << pcinfor[i].memory << endl;
 	}
+	
 	cout << "################################################################"<<endl;
 	cout << "################################################################"<<endl;
 	cout << "################################################################"<<endl;
+	
 	for (int i = 0; i < appnum; i++)
 	{
 		cout << i << "    " << appinfor[i].typenum << "    " << appinfor[i].memory << endl;
@@ -152,6 +166,44 @@ void AC::showinfor()
 			exit(-1);
 		}
 	}
+
+	cout << "################################################################"<<endl;
+	cout << "################################################################"<<endl;
+	cout << "################################################################"<<endl;
+
+	for (int i = 0; i < appdelay.size() - 1; i++)
+	{
+		cout << appdelay[i] << "  ";
+	}
+
+	cout << appdelay.back() << endl;
+
+	for (int i = 0; i < pcnum; i++)
+	{
+		for (int j = 0; j < pcnum; j++)
+		{
+			if (j == i)
+			{
+				if (pcdelay[i][j] != 0)
+				{
+					cout << "load app information error\n";
+					exit(-1);
+				}
+			}
+			else
+			{
+				if (pcdelay[i][j] != pcdelay[j][i])
+				{
+					cout << "load app information error\n";
+					exit(-1);
+				}
+			}
+
+			cout << pcdelay[i][j] << " ";
+		}
+		cout << endl;
+	}
+	
 	return ;
 }
 
@@ -210,7 +262,13 @@ int AC::calfit(const string &dna)
 		{
 			return -1;
 		}
-		fitness += delayinfor[startid][endid];
+
+		if (pcdelay[startid][endid] > appdelay[i - 1])
+		{
+			//printf("appdelay[%d] = %d\n", i - 1, appdelay[i - 1]);
+			return -1;
+		}
+		fitness += pcdelay[startid][endid];
 		startid = endid;
 		head += bits[i];
 	}
@@ -258,7 +316,7 @@ parants_t AC::choose(const vector<Plan> &plans)
 		}
 	}while(parants.mother == parants.father);
 	
-
+	
 	return parants;
 }
 
@@ -351,31 +409,86 @@ void AC::ga()
 		
 		bits[i] = (int)ceil(log2(pcidforapp_v[i].size()));
 	}
+	/*check if this case is good*/
+
+	for (int i = 0; i < appnum - 1; i++)
+	{
+		bool good = false;
+		int cnt = 0;
+		for (auto start : pcidforapp_v[i])
+		{
+			for (auto end : pcidforapp_v[i + 1])
+			{
+				if (pcdelay[start][end] <= appdelay[i])
+				{
+					cnt++;
+					good = true;
+				}
+			}
+		}
+		//cout << "pass " << i + 1 << " " << cnt << " ways\n";
+		if (!good)
+		{
+			cout << "bad case\n";
+			exit(-1);
+		}
+	}
+
+	cout << "good case !\n";
+	/*for (int k = 0; k < appnum; k++)
+	{
+		cout << "app " << k << " ";
+		for (int i = 0; i < pcidforapp_v[k].size(); i++)
+		{
+			cout << pcidforapp_v[k][i] << " ";
+		}
+		cout << endl;
+	}*/
+	
+	//return;
 	/*create DNA for each app randomly*/
+	
 	for (int i = 0; i < INITPLANS; i++)
 	{
-		for (int j = 0; j < appnum; j++)
+		
+		for (;;)
 		{
-			string appdna;
-			int tmpid;
-			do 
+			Plan tmp;
+			for (int j = 0; j < appnum; j++)
 			{
-				appdna.clear();
-				for (int k = 0; k < bits[j]; k++)
+				string appdna;
+				int tmpid;
+				do 
 				{
-					appdna += myrand(0, 1) ? "1" : "0";
-				}
-				tmpid = dnatoid(appdna);
-			}while (tmpid >= pcidforapp_v[j].size());
+					appdna.clear();
+					for (int k = 0; k < bits[j]; k++)
+					{
+						appdna += myrand(0, 1) ? "1" : "0";
+					}
+					tmpid = dnatoid(appdna);
+				}while (tmpid >= pcidforapp_v[j].size());
+				
+				tmp.dna += appdna;
+			}
+			tmp.fitness = calfit(tmp.dna);
+			if (tmp.fitness != -1)
+			{
+				plans[i] = tmp;
+				break;
+			}
 			
-			plans[i].dna += appdna;
+
+			//showpcid(tmp);
+			//usleep(50000);
+			
+			//cout << tmp.dna << endl;
+			//exit(-1);
 		}
 		
-		plans[i].fitness = calfit(plans[i].dna);
 		
 	}		
 	//showplans(plans);
-	//return;
+	//return ;
 	while (days--)
 	{
 		//cout << "day: " << days << endl;
@@ -416,10 +529,12 @@ void AC::ga()
 		/*variation(变异) after one year but one year may not is 365 days*/
 		if (issame(plans))
 		{
+			//cout << "variation" << endl;
 			variation(plans);/*promise variation will not create unormal baby*/
 		}
 		//cout << days << endl;
 		//showplans(plans);
+		//return ;
 	}
 
 	sort(plans.begin(), plans.end(), compare);
@@ -440,6 +555,75 @@ void AC::showret()
 	}
 	cout << endl;
 	cout << "fitness = " << plans[0].fitness << endl;
+	return ;
+}
+
+void AC::showpcid(Plan plan)
+{
+	int start = 0;
+	cout << "pcid:  ";
+	for (int i = 0; i < appnum; i++)
+	{
+		cout << dnatoid(plan.dna.substr(start, bits[i])) << " ";
+		start += bits[i]; 
+	}
+	cout << endl;
+	return ;
+}
+
+void AC::s2h()
+{
+	int fd = Open("infor.csv", O_CREAT | O_TRUNC | O_RDWR, 0666);
+	
+	char buf[200], str[20];
+	
+	snprintf(buf, sizeof(buf), "%s\n", itoa(pcnum, str, 10));
+	Write(fd, buf, strlen(buf));
+	
+	for (int i = 0; i < pcnum; i++)
+	{
+		snprintf(buf, sizeof(buf), "%s ", itoa(pcinfor[i].memory, str, 10));
+		Write(fd, buf, strlen(buf));
+	}
+	Write(fd, "\n", 1);
+	
+	for (int i = 0; i < pcnum; i++)
+	{
+		for (int k = 0; k < pcnum; k++)
+		{
+			snprintf(buf, sizeof(buf), "%s ", itoa(pcdelay[i][k], str, 10));
+			Write(fd, buf, strlen(buf));
+		}
+		Write(fd, "\n", 1);
+	}
+
+	snprintf(buf, sizeof(buf), "%s\n", itoa(appnum, str, 10));
+	Write(fd, buf, strlen(buf));
+
+	for (int i = 0; i < appnum; i++)
+	{
+		char str1[20], str2[20];
+		snprintf(buf, sizeof(buf), "%s %s ", 
+			itoa(appinfor[i].memory, str1, 10), itoa(pcidforapp_v[i].size(), str2, 10));
+		Write(fd, buf, strlen(buf));
+
+		for (int j = 0; j < pcidforapp_v[i].size(); j++)
+		{
+			snprintf(buf, sizeof(buf), "%s ", itoa(pcidforapp_v[i][j], str, 10));
+			Write(fd, buf, strlen(buf));
+		}
+
+		Write(fd, "\n", 1);
+	}
+
+	for (int i = 0; i < appdelay.size(); i++)
+	{
+		snprintf(buf, sizeof(buf), "%s ", itoa(appdelay[i], str, 10));
+		Write(fd, buf, strlen(buf));
+	}
+
+	Write(fd, "\n", 1);
+	
 	return ;
 }
 

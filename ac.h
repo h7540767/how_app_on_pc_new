@@ -69,12 +69,13 @@ class AC
 		void showinfor();
 		void ga();
 		void showret();
+        void s2h();
 
     public:
         vector<Plan> plans;
 		
 	private:
-		FILE *pcinforfp, *appinforfp, *delayinforfp;
+		FILE *pcinforfp, *appinforfp, *pcdelayinforfp, *appdelayinforfp;
 		char buf[BUFLINE], *token;
 		size_t  len;
 		int appnum, pcnum;
@@ -82,7 +83,8 @@ class AC
 		Pcinfor * pcinfor;
 		Appinfor* appinfor;
         vector<int> * pcidforapp_v;
-		vector<vector<int>> delayinfor;
+		vector<vector<int> > pcdelay;
+        vector<int> appdelay;
 		int days;
 		int year;
         int * bits;
@@ -97,10 +99,14 @@ class AC
         static bool compare(Plan a, Plan b);
         void variation(vector<Plan> & plans);
         bool issame(vector<Plan> & plans);
+        void showpcid(Plan plan);
+        
 	
 };
 
 void showplans(vector<Plan> & plans);
+
+
 
 
 #endif
