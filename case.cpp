@@ -3,13 +3,14 @@
 
 #define MAXAPPDELAY  500
 #define MINAPPDELAY  1
-#define MAXPCDELAY   100
+#define MAXPCDELAY   500
 #define MINPCDELAY   1
 #define MAXTYPE      10
 #define MINTYPE      1
-#define MAXMEMORY    1024
-#define MINMEMORY    1
-
+#define MAXPCMEMORY  1024
+#define MINPCMEMORY  1
+#define MAXAPPMEMORY 512
+#define MINAPPMEMORY 1
 
 
 set<int> choosetype(int typenum)
@@ -82,7 +83,7 @@ int main(int argc, char *argv[])
 		char idstr[20], typestr[20], memorystr[20];
 		int id = i;
 		int type = myrand(1, MAXTYPE);
-		int memory = myrand(1, MAXMEMORY);
+		int memory = myrand(1, MAXPCMEMORY);
 
 		snprintf(buf, sizeof(buf), "%-10s%-10s%-5s\n", 
 			itoa(id, idstr, 10), itoa(type, typestr, 10), itoa(memory, memorystr, 10));
@@ -100,7 +101,7 @@ int main(int argc, char *argv[])
 		char idstr[20], typenumstr[20], memorystr[20], str[20];
 		int id = i;
 		int typenum = myrand(MINTYPE, MAXTYPE);
-		int memory = myrand(MINMEMORY, MAXMEMORY);
+		int memory = myrand(MINAPPMEMORY, MAXAPPMEMORY);
 		int type;
 		
 		snprintf(buf, sizeof(buf), "%-10s%-10s%-5s\n", 
