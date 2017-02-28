@@ -20,11 +20,6 @@ int main()
 	
 	ac.loadinfor();
 	//ac.showinfor();
-	#ifdef debug
-	ac.showinfor();
-	return 0;
-	#endif
-	
 	ac.ga();
 	ac.showret();
 	ac.s2h();

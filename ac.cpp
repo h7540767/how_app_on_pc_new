@@ -30,7 +30,7 @@ AC::AC()
     appinfor     = NULL;
 	bits         = NULL;
 	pcidforapp_v = NULL;
-	days         = 1e4;
+	days         = 1e3;
 	year         = 30;
 	plans.resize(INITPLANS);
 	pcfreemem    = NULL;
@@ -286,7 +286,7 @@ int AC::calfit(const string &dna)
 		}
 
 		if (i == appnum - 1 && 
-			(pcfreemem[pcidforapp_v[i][startid]] -= appinfor[i].memory) < 0)
+			(pcfreemem[pcidforapp_v[i][endid]] -= appinfor[i].memory) < 0)
 		{
 			return -1;
 		}
@@ -340,7 +340,11 @@ parants_t AC::choose(const vector<Plan> &plans)
 				break;
 			}
 		}
-	}while(parants.mother == parants.father);
+		#ifdef debug
+		cout << "choosing\n";
+		#endif
+	}while(parants.mother == parants.father || 
+	plans[parants.mother].dna == plans[parants.father].dna);
 	
 	
 	return parants;
@@ -369,41 +373,46 @@ void AC::kill(vector<Plan> & plans)
 
 void AC::variation(vector <Plan> & plans)
 {
-	int planid = myrand(0, plans.size() - 1);
+	//int planid = myrand(0, plans.size() - 1);
 	Plan tmp;
-	do
+	for (int id = 1; id < INITPLANS; id++)
 	{
-		tmp = plans[planid];
-		int start = myrand(0, tmp.dna.size() - 1);
-		int length = myrand(1, tmp.dna.size() - start);
-
-		for (int i = start; i < start + length; i++)
+		do
 		{
-			tmp.dna[i] = (tmp.dna[i] == '0') ? '1' : '0';/*upside down*/
-		}
+			tmp = plans[id];
+			int start = myrand(0, tmp.dna.size() - 1);
+			int length = myrand(1, tmp.dna.size() - start);
 
-		
+			for (int i = start; i < start + length; i++)
+			{
+				tmp.dna[i] = (tmp.dna[i] == '0') ? '1' : '0';/*upside down*/
+			}
 
-	}while((tmp.fitness = calfit(tmp.dna)) == -1);
+			#ifdef debug
+			cout << "variationing\n";
+			#endif
+		}while((tmp.fitness = calfit(tmp.dna)) == -1);
+		plans[id] = tmp;
+	}
+	
 
-	plans[planid] = tmp;
+	
 	return ;
 }
 
 bool AC::issame(vector<Plan> & plans)
 {
 	bool ret = true;
-	int sample = plans[0].fitness;
+	string sample = plans[0].dna;
 	for (int i = 1; i < plans.size(); i++)
 	{
-		if (sample != plans[i].fitness)
+		if (sample != plans[i].dna)
 		{
 			ret = false;
 			return ret;
 		}
 			
 	}
-
 	return ret;
 }
 
@@ -412,7 +421,7 @@ void showplans(vector<Plan> & plans)
 	for (int i = 0; i < plans.size(); i++)
 	{
 		cout << "plan " << i << ":" << endl;
-		//cout << "dna: " << plans[i].dna << endl;
+		cout << "dna: " << plans[i].dna << endl;
 		cout << "fitness: " << plans[i].fitness << endl;
 	}
 	return ;
@@ -444,7 +453,7 @@ void AC::ga()
 	return ;*/
 	/*check if this case is good*/
 
-	/*for (int i = 0; i < appnum - 1; i++)
+	for (int i = 0; i < appnum - 1; i++)
 	{
 		bool good = false;
 		int cnt = 0;
@@ -467,7 +476,7 @@ void AC::ga()
 		}
 	}
 
-	cout << "good case !\n";*/
+	cout << "good case !\n";
 	/*for (int k = 0; k < appnum; k++)
 	{
 		cout << "app " << k << " ";
@@ -516,12 +525,20 @@ void AC::ga()
 			
 			//cout << tmp.dna << endl;
 			//exit(-1);
+			#ifdef debug
+			cout << "initing\n";
+			#endif
 		}
 		
 		
 	}		
-	//showplans(plans);
-	return ;
+	if (issame(plans))
+	{
+		cout << "init error\n";
+		exit(-1);
+	}
+	//return ;
+	//cout << "INITNUM baby birth" << endl;
 	while (days--)
 	{
 		//cout << "day: " << days << endl;
@@ -537,7 +554,10 @@ void AC::ga()
 			while((son0.fitness = 
 					calfit((son0 = plans[parants.father] + plans[parants.mother]).dna)) == -1)
 			{
-				//cout << "create an unnormal son0 and i = " << i << endl;
+				#ifdef debug
+				cout << "create an unnormal son0 and i = " << i << endl;
+				#endif
+				
 				//cout << "day = " << days << endl;
 				//cout << "father = " << parants.father << " mother = " << parants.mother << endl;
 			}
@@ -545,7 +565,9 @@ void AC::ga()
 			while((son1.fitness = 
 				    calfit((son1 = plans[parants.father] + plans[parants.mother]).dna)) == -1)
 			{
-				//cout << "create an unnormal son1\n";
+				#ifdef debug
+				cout << "create an unnormal son1 and i = " << i << endl;
+				#endif
 			}
 			//cout << plans[parants.father].fitness << " " << plans[parants.mother].fitness << " ";
 			//cout << son1.fitness << endl;
