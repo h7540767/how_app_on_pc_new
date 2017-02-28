@@ -33,6 +33,7 @@ AC::AC()
 	days         = 1e4;
 	year         = 30;
 	plans.resize(INITPLANS);
+	pcfreemem    = NULL;
 }
 
 AC::~AC()
@@ -66,6 +67,11 @@ AC::~AC()
 	{
 		delete[] pcidforapp_v;
 	}
+
+	if (pcfreemem != NULL)
+	{
+		delete[] pcfreemem;
+	}
 	
 	/*if (pcdelay != NULL)
 	{
@@ -88,7 +94,7 @@ void AC::loadinfor()
 	pctype2id 	= new Type2id[TYPENUM + 1];
 	pcinfor 	= new Pcinfor[pcnum];
 	appinfor 	= new Appinfor[appnum];
-
+	pcfreemem   = new int[pcnum];
 	pcdelay.resize(pcnum, vector<int>(pcnum));
 	appdelay.resize(appnum - 1);
 	/*pcdelay = new int * [pcnum];
@@ -245,12 +251,17 @@ int AC::calfit(const string &dna)
 {
 	int fitness = 0;
 	int head = 0;
-	int startid = dnatoid(dna.substr(head, bits[0]));
 	int endid;
-	
+	int startid = dnatoid(dna.substr(head, bits[0]));
+
 	if (startid >= pcidforapp_v[0].size())
 	{
 		return -1;
+	}
+
+	for (int i = 0; i < pcnum; i++)
+	{
+		pcfreemem[i] = pcinfor[i].memory;
 	}
 	
 	head += bits[0];
@@ -268,10 +279,25 @@ int AC::calfit(const string &dna)
 			//printf("appdelay[%d] = %d\n", i - 1, appdelay[i - 1]);
 			return -1;
 		}
+
+		if ((pcfreemem[pcidforapp_v[i - 1][startid]] -= appinfor[i - 1].memory) < 0)
+		{
+			return -1;
+		}
+
+		if (i == appnum - 1 && 
+			(pcfreemem[pcidforapp_v[i][startid]] -= appinfor[i].memory) < 0)
+		{
+			return -1;
+		}
 		fitness += pcdelay[pcidforapp_v[i - 1][startid]][pcidforapp_v[i][endid]];
 		startid = endid;
 		head += bits[i];
 	}
+
+	
+
+	
 	
 	return fitness;
 }
@@ -418,7 +444,7 @@ void AC::ga()
 	return ;*/
 	/*check if this case is good*/
 
-	for (int i = 0; i < appnum - 1; i++)
+	/*for (int i = 0; i < appnum - 1; i++)
 	{
 		bool good = false;
 		int cnt = 0;
@@ -441,7 +467,7 @@ void AC::ga()
 		}
 	}
 
-	cout << "good case !\n";
+	cout << "good case !\n";*/
 	/*for (int k = 0; k < appnum; k++)
 	{
 		cout << "app " << k << " ";
@@ -495,7 +521,7 @@ void AC::ga()
 		
 	}		
 	//showplans(plans);
-	//return ;
+	return ;
 	while (days--)
 	{
 		//cout << "day: " << days << endl;

@@ -88,6 +88,7 @@ class AC
 		int days;
 		int year;
         int * bits;
+        int * pcfreemem;
 		
 	
 	private:
