@@ -1,9 +1,9 @@
 #include <time.h>
 #include "wrap.h"
 
-#define MAXAPPDELAY  500
+#define MAXAPPDELAY  100
 #define MINAPPDELAY  1
-#define MAXPCDELAY   500
+#define MAXPCDELAY   100
 #define MINPCDELAY   1
 #define MAXTYPE      10
 #define MINTYPE      1
